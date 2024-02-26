@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Attendance</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+
+    <h1>Employee Attendance</h1>
+
+    <!-- Attendance Form -->
+    <form id="attendanceForm">
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date" required>
+        <br>
+        <label for="status">Attendance Status:</label>
+        <select id="status" name="status" required>
+            <option value="present">Present</option>
+            <option value="absent">Absent</option>
+        </select>
+        <br>
+        <button type="submit">Mark Attendance</button>
+    </form>
+
+    <!-- Attendance Table -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="attendanceTableBody"></tbody>
+    </table>
+
+    <script>
+        // Fetch and display attendance on page load
+        function fetchAttendance() {
+            $.ajax({
+                url: '/employee/emp_add/get_attendance/' + employeeId,  // Correct URL for fetching attendance
+                method: 'GET',
+                headers: {
+                    "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+                },
+                success: function (data) {
+                    // Clear existing data
+                    $('#attendanceTableBody').empty();
+
+                    // Append new data
+                    data.forEach(function (attendance) {
+                        $('#attendanceTableBody').append(`<tr><td>${attendance.date}</td><td>${attendance.status}</td></tr>`);
+                    });
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            });
+        }
+
+        // Initial fetch when the page loads
+        fetchAttendance();
+
+    // Submit Mark Attendance Form
+    $("#markAttendanceForm").submit(function(event) {
+        event.preventDefault();
+        $.ajax({
+            type: "POST",
+            url: '/employee/emp_add/add_attendance/' + employeeId + '/',  // Correct URL for marking attendance
+            data: {
+                date: $('#date').val(),
+                status: $('#status').val(),
+            },
+            headers: {
+                "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+            },
+            success: function(response) {
+                console.log(response);
+                // Refresh the page or update the table
+                location.reload();
+            },
+            error: function(error) {
+                console.error(error);
+            }
+        });
+    });
+
+    </script>
+
+</body>
+</html>
+
+

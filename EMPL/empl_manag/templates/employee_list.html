@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee List</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+
+<h2>Employee List</h2>
+
+<!-- Add Employee Form -->
+<form id="addEmployeeForm">
+    {% csrf_token %}
+    <label for="name">Name:</label>
+    <input type="text" name="name" required>
+    
+    <label for="designation">Designation:</label>
+    <input type="text" name="designation" required>
+
+    <label for="department">Department:</label>
+    <input type="text" name="department" required>
+
+    <button type="submit">Add Employee</button>
+</form>
+
+<!-- Employee List Table -->
+<table border="1">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Designation</th>
+            <th>Department</th>
+            <th>Date of Joining</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for employee in employees %}
+        <tr>
+            <td>{{ employee.name }}</td>
+            <td>{{ employee.designation }}</td>
+            <td>{{ employee.department }}</td>
+            <td>{{ employee.doj }}</td>
+            <td>
+                <button class="editEmployee" data-id="{{ employee.id }}">Edit</button>
+                <button class="deleteEmployee" data-id="{{ employee.id }}">Delete</button>
+                <a href="add_attendance/{{employee.id}}"><button class="MarkEmployee" data-id="{{ employee.id }}">Attendance</button></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Edit Employee Form -->
+<form id="editEmployeeForm" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" id="editEmployeeId" name="id">
+
+    <label for="editName">Name:</label>
+    <input type="text" id="editName" name="name" required>
+    
+    <label for="editDesignation">Designation:</label>
+    <input type="text" id="editDesignation" name="designation" required>
+
+    <label for="editDepartment">Department:</label>
+    <input type="text" id="editDepartment" name="department" required>
+
+    <button type="submit">Update Employee</button>
+</form>
+
+
+
+
+<script>
+    // Add Employee
+    $("#addEmployeeForm").submit(function(event) {
+        event.preventDefault();
+        $.ajax({
+            type: "POST",
+            url: "emp_add/",
+            data: $(this).serialize(),
+            success: function(response) {
+                console.log(response);
+                // Refresh the page or update the table
+                location.reload();
+            },
+            error: function(error) {
+                console.error(error);
+            }
+        });
+    });
+
+    // Edit Employee
+    $(".editEmployee").click(function() {
+        var employeeId = $(this).data("id");
+        $.get("emp_add/" + employeeId , function(employee) {
+            // Populate the edit form with employee data
+            $("#editEmployeeId").val(employee.id);
+            $("#editName").val(employee.name);
+            $("#editDesignation").val(employee.designation);
+            $("#editDepartment").val(employee.department);
+
+            // Show the edit form and hide the add form
+            $("#editEmployeeForm").show();
+            $("#addEmployeeForm").hide();
+        });
+    });
+
+    // Submit Edit Employee Form
+    $("#editEmployeeForm").submit(function(event) {
+        event.preventDefault();
+        var employeeId = $("#editEmployeeId").val();
+        $.ajax({
+            type: "PUT",
+            url: "update_emp/" + employeeId + "",
+            data: $(this).serialize(),
+            headers: {
+                "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+            },
+            success: function(response) {
+                console.log(response);
+                // Refresh the page or update the table
+                location.reload();
+            },
+            error: function(error) {
+                console.error(error);
+            }
+        });
+    });
+
+    // Delete Employee
+    $(".deleteEmployee").click(function() {
+        var employeeId = $(this).data("id");
+        if (confirm("Are you sure you want to delete this employee?")) {
+            $.ajax({
+                type: "DELETE",
+                url: "remove_emp/" + employeeId + "",
+                headers: {
+                    "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+                },
+                success: function(response) {
+                    console.log(response);
+                    // Refresh the page or update the table
+                    location.reload();
+                },
+                error: function(error) {
+                    console.error(error);
+                }
+            });
+        }
+    });
+
+    
+</script>
+
+
+
+
+</body>
+</html>
